@@ -1,0 +1,63 @@
+# GoGo Website Explanation
+
+## Overview
+The website appears to be an event venue booking platform named "GoGo". It allows users to browse venues, book them for events, and contact the management for inquiries.
+
+## Main Components
+
+### 1. Contact Page
+The contact page (contact.php) features:
+- A visually appealing header with animated bubbles and gradient background
+- A contact form that collects:
+  - Name
+  - Email
+  - Subject
+  - Message
+- Contact information section showing:
+  - Office location (Lovely Professional University)
+  - Phone number
+  - Email address
+  - Office hours
+  - Social media links
+- A FAQ section addressing common questions about venue booking:
+  - Booking timeframes
+  - What's included in booking fees
+  - Venue visit options
+  - Cancellation policies
+  - Catering services
+
+### 2. Backend Functionality
+The PHP script handles:
+- Form submission processing
+- Database connection through admin/db_connect.php
+- Data sanitization to prevent SQL injection
+- Creation of a contact_messages table if it doesn't exist
+- Storing contact form submissions in the database
+- Success/error alerts after form submission
+
+### 3. Design Elements
+- Modern, responsive design with gradient backgrounds
+- Animated bubbles in the header
+- Visual effects on hover for interactive elements
+- Custom accordion styling for the FAQ section
+- Responsive adjustments for mobile and tablet views
+- AOS (Animate On Scroll) animations for elements
+- Bootstrap framework integration
+
+### 4. Technologies Used
+- PHP for server-side processing
+- MySQL database for data storage
+- HTML/CSS for structure and styling
+- JavaScript for animations and interactivity
+- Bootstrap framework for responsive layout
+- Font Awesome for icons
+- AOS library for scroll animations
+
+### 5. User Experience
+- Clean, modern design with intuitive navigation
+- Visually engaging elements with animations and gradient effects
+- Mobile-responsive layout that adapts to different screen sizes
+- Clear communication channels (form, phone, email, social media)
+- Comprehensive FAQ section to address common questions
+
+The website effectively combines aesthetic appeal with functional features to create an engaging platform for users looking to book event venues. 
