@@ -1,4 +1,4 @@
-<?php include 'admin/db_connect.php' ?>
+<!-- <?php include 'admin/db_connect.php' ?>
 <?php
 if(isset($_GET['id'])){
 $qry = $conn->query("SELECT a.*,u.name as aname FROM arts a inner join users u on u.id = a.artist_id where a.id= ".$_GET['id']);
@@ -94,4 +94,4 @@ $fs = $conn->query("SELECT * FROM arts_fs where art_id = $id ");
 	$('.order_this').click(function(){
 		uni_modal("Request Order","manage_order.php?fs_id="+$(this).attr('data-id'))
 	})
-</script>
+</script> -->

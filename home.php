@@ -689,7 +689,7 @@ section {
             <div class="row">
                 <div class="col-lg-6 text-left">
                     <div class="hero-text">
-                        <h1 class="hero-title">Welcome to Event Management</h1>
+                        <h1 class="hero-title">Wixvent</h1>
                         <p class="hero-subtitle">Find and book the perfect venue for your next event</p>
                         <a href="index.php?page=venue" class="hero-btn">Book a Demo</a>
                     </div>
@@ -866,25 +866,25 @@ section {
         <div class="row text-center">
             <div class="col-md-3 mb-4 mb-md-0" data-aos="fade-up">
                 <div class="stat-item">
-                    <div class="stat-number count-up" data-count="150">0</div>
+                    <div class="stat-number count-up" data-count="6">0</div>
                     <div class="stat-label">Venues</div>
                 </div>
             </div>
             <div class="col-md-3 mb-4 mb-md-0" data-aos="fade-up" data-aos-delay="100">
                 <div class="stat-item">
-                    <div class="stat-number count-up" data-count="1200">0</div>
+                    <div class="stat-number count-up" data-count="10">0</div>
                     <div class="stat-label">Happy Clients</div>
                 </div>
             </div>
             <div class="col-md-3 mb-4 mb-md-0" data-aos="fade-up" data-aos-delay="200">
                 <div class="stat-item">
-                    <div class="stat-number count-up" data-count="4500">0</div>
+                    <div class="stat-number count-up" data-count="10">0</div>
                     <div class="stat-label">Events Hosted</div>
                 </div>
             </div>
             <div class="col-md-3" data-aos="fade-up" data-aos-delay="300">
                 <div class="stat-item">
-                    <div class="stat-number count-up" data-count="98">0</div>
+                    <div class="stat-number count-up" data-count="69">69</div>
                     <div class="stat-label">Satisfaction Rate %</div>
                 </div>
             </div>

@@ -130,3 +130,18 @@ if($action == "get_pdetails"){
 	if($get)
 		echo $get;
 }
+if($action == "delete_contact"){
+	$delete = $crud->delete_contact();
+	if($delete)
+		echo $delete;
+}
+if($action == "get_contact_messages"){
+	$get = $crud->get_contact_messages();
+	if($get)
+		echo $get;
+}
+if($action == "update_contact_status"){
+	$update = $crud->update_contact_status();
+	if($update)
+		echo $update;
+}
