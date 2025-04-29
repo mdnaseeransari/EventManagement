@@ -207,9 +207,16 @@ button.btn.btn-sm.btn-rounded.btn-sm.btn-dark {
 					setTimeout(function(){
 						location.href = "index.php?page=venue"
 					},1500)
-
+				} else {
+					alert_toast("Error saving data: " + resp,'error')
+					console.log(resp)
+					end_load()
 				}
-				
+			},
+			error: function(xhr, status, error) {
+				alert_toast("AJAX Error: " + error,'error')
+				console.log(xhr.responseText)
+				end_load()
 			}
 		})
 	})

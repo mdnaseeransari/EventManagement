@@ -125,63 +125,91 @@ Class Action {
 
 	
 	function save_venue(){
-		extract($_POST);
-		$data = " venue = '$venue' ";
-		$data .= ", address = '$address' ";
-		$data .= ", description = '$description' ";
-		$data .= ", rate = '$rate' ";
-		if(empty($id)){
-			//echo "INSERT INTO arts set ".$data;
-			$save = $this->db->query("INSERT INTO venue set ".$data);
-			if($save){
+		try {
+			// Extract POST data
+			extract($_POST);
+			
+			// Create data for SQL query
+			$data = " venue = '" . $this->db->real_escape_string($venue) . "' ";
+			$data .= ", address = '" . $this->db->real_escape_string($address) . "' ";
+			$data .= ", description = '" . $this->db->real_escape_string($description) . "' ";
+			$data .= ", rate = '" . $this->db->real_escape_string($rate) . "' ";
+			
+			// Determine if this is an insert or update
+			if(empty($id)){
+				// New venue - INSERT
+				$sql = "INSERT INTO venue set " . $data;
+				$save = $this->db->query($sql);
+				
+				if(!$save) {
+					return "Database error (INSERT): " . $this->db->error . ", SQL: " . $sql;
+				}
+				
 				$id = $this->db->insert_id;
-				$folder = "assets/uploads/venue_".$id;
-				if(is_dir($folder)){
-					$files = scandir($folder);
-					foreach($files as $k =>$v){
-						if(!in_array($v, array('.','..'))){
-							unlink($folder."/".$v);
-						}
-					}
-				}else{
-					mkdir($folder);
+			} else {
+				// Existing venue - UPDATE
+				$sql = "UPDATE venue set " . $data . " where id=" . $id;
+				$save = $this->db->query($sql);
+				
+				if(!$save) {
+					return "Database error (UPDATE): " . $this->db->error . ", SQL: " . $sql;
 				}
-				if(isset($img)){
-				for($i = 0 ; $i< count($img);$i++){
-						$img[$i]= str_replace('data:image/jpeg;base64,', '', $img[$i] );
-						$img[$i] = base64_decode($img[$i]);
-						$fname = $id."_".strtotime(date('Y-m-d H:i'))."_".$imgName[$i];
-						$upload = file_put_contents($folder."/".$fname,$img[$i]);
+			}
+			
+			// If we get here, the database operation was successful
+			// Now handle image uploads
+			$folder = "assets/uploads/venue_" . $id;
+			
+			// Make sure the folder exists and is writable
+			if(!is_dir($folder)){
+				if(!mkdir($folder, 0777, true)) {
+					return "Failed to create directory: " . $folder;
+				}
+			}
+			
+			// Clear existing images if needed
+			if(is_dir($folder)){
+				$files = scandir($folder);
+				foreach($files as $k => $v){
+					if(!in_array($v, array('.','..')) && is_file($folder."/".$v)){
+						unlink($folder."/".$v);
 					}
 				}
 			}
-		}else{
-			$save = $this->db->query("UPDATE venue set ".$data." where id=".$id);
-			if($save){
-				$folder = "assets/uploads/venue_".$id;
-				if(is_dir($folder)){
-					$files = scandir($folder);
-					foreach($files as $k =>$v){
-						if(!in_array($v, array('.','..'))){
-							unlink($folder."/".$v);
-						}
+			
+			// Process uploaded images
+			if(isset($img) && is_array($img)){
+				for($i = 0; $i < count($img); $i++){
+					// Clean up base64 data
+					$img[$i] = str_replace('data:image/jpeg;base64,', '', $img[$i]);
+					$img[$i] = str_replace('data:image/png;base64,', '', $img[$i]);
+					$img[$i] = str_replace('data:image/gif;base64,', '', $img[$i]);
+					$img[$i] = str_replace(' ', '+', $img[$i]);
+					
+					// Decode the image
+					$imgData = base64_decode($img[$i]);
+					
+					if ($imgData === false) {
+						return "Error decoding base64 image data";
 					}
-				}else{
-					mkdir($folder);
-				}
-
-				if(isset($img)){
-				for($i = 0 ; $i< count($img);$i++){
-						$img[$i]= str_replace('data:image/jpeg;base64,', '', $img[$i] );
-						$img[$i] = base64_decode($img[$i]);
-						$fname = $id."_".strtotime(date('Y-m-d H:i'))."_".$imgName[$i];
-						$upload = file_put_contents($folder."/".$fname,$img[$i]);
+					
+					// Generate a unique filename
+					$fname = $id . "_" . strtotime(date('Y-m-d H:i')) . "_" . $imgName[$i];
+					
+					// Save the file
+					$file_path = $folder . "/" . $fname;
+					$upload = file_put_contents($file_path, $imgData);
+					
+					if ($upload === false) {
+						return "Error writing image file to " . $file_path;
 					}
 				}
 			}
+			
+			return 1; // Success
+		} catch (Exception $e) {
+			return "Exception: " . $e->getMessage();
 		}
-		if($save)
-			return 1;
 	}
 	function delete_venue(){
 		extract($_POST);
@@ -412,6 +440,32 @@ Class Action {
 				$fs = $this->db->query("UPDATE arts_fs set status = 0 where id = $fs_id ");
 			}
 			if($fs)
+			return 1;
+		}
+	}
+	function get_contact_messages(){
+		extract($_POST);
+		$data = array();
+		$get = $this->db->query("SELECT * FROM contact_messages ORDER BY status ASC, date_created DESC");
+		while($row = $get->fetch_assoc()){
+			$row['date_created'] = date("M d, Y h:i A", strtotime($row['date_created']));
+			$data[] = $row;
+		}
+		return json_encode($data);
+	}
+
+	function update_contact_status(){
+		extract($_POST);
+		$update = $this->db->query("UPDATE contact_messages SET status = 1 WHERE id = $id");
+		if($update){
+			return 1;
+		}
+	}
+
+	function delete_contact(){
+		extract($_POST);
+		$delete = $this->db->query("DELETE FROM contact_messages WHERE id = $id");
+		if($delete){
 			return 1;
 		}
 	}

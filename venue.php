@@ -723,13 +723,13 @@ html, body, #page-main, section {
         <h2 class="venue-section-title">Our Available Venues</h2>
         
         <!-- Venue Counter -->
-        <div class="venue-counter" data-aos="zoom-in" data-aos-delay="300">
+        <div class="venue-counter">
             <span id="venue-count">0</span> venues available for booking
         </div>
         
         <!-- Venues Grid -->
         <div class="venue-grid-container">
-            <div class="row venue-row" id="venues-container" data-aos="fade-up" data-aos-delay="400">
+            <div class="row venue-row" id="venues-container">
                 <?php
                 $venue = $conn->query("SELECT * from venue order by rand()");
                 if($venue->num_rows > 0):
@@ -804,19 +804,21 @@ html, body, #page-main, section {
         </div>
         
         <!-- Loading Spinner -->
-        <div class="loading-spinner" id="loading-spinner">
+        <div class="loading-spinner" id="loading-spinner" style="display: none;">
             <div class="loader"></div>
             <p class="mt-3">Loading more venues...</p>
-                </div>
-                </div>
-                </div>
+        </div>
+    </div>
+</div>
 
 <script>
     // Initialize AOS for animations
     AOS.init({
-        duration: 800,
-        easing: 'ease-in-out',
-        once: true
+        duration: 500,
+        easing: 'ease',
+        once: true,
+        mirror: false,
+        disable: 'mobile'
     });
     
     // Initialize image click for lightbox

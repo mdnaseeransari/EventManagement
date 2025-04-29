@@ -3,686 +3,741 @@ include 'admin/db_connect.php';
 
 // Process form submission
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    $errors = [];
+    
     // Get form data and sanitize
     $name = mysqli_real_escape_string($conn, $_POST['name']);
     $email = mysqli_real_escape_string($conn, $_POST['email']);
     $subject = mysqli_real_escape_string($conn, $_POST['subject']);
     $message = mysqli_real_escape_string($conn, $_POST['message']);
     
-    // Create contact_messages table if it doesn't exist
-    $create_table = "CREATE TABLE IF NOT EXISTS `contact_messages` (
-        `id` int(11) NOT NULL AUTO_INCREMENT,
-        `name` varchar(100) NOT NULL,
-        `email` varchar(100) NOT NULL,
-        `subject` varchar(200) NOT NULL,
-        `message` text NOT NULL,
-        `status` tinyint(1) NOT NULL DEFAULT 0 COMMENT '0=unread, 1=read',
-        `date_created` datetime NOT NULL DEFAULT current_timestamp(),
-        PRIMARY KEY (`id`)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+    // Validate name (only letters, spaces allowed)
+    if (!preg_match("/^[a-zA-Z\s]+$/", $name)) {
+        $errors[] = "Name should only contain letters and spaces";
+    }
     
-    $conn->query($create_table);
+    // Validate email
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $errors[] = "Invalid email format";
+    }
     
-    // Insert into database
-    $sql = "INSERT INTO contact_messages (name, email, subject, message) VALUES ('$name', '$email', '$subject', '$message')";
+    // Validate subject length
+    if (strlen($subject) < 2 || strlen($subject) > 100) {
+        $errors[] = "Subject must be between 2 and 100 characters";
+    }
     
-    if ($conn->query($sql) === TRUE) {
-        echo "<script>alert('Thank you for your message! We will get back to you soon.');</script>";
+    // Validate message length
+    if (strlen($message) < 10 || strlen($message) > 1000) {
+        $errors[] = "Message must be between 10 and 1000 characters";
+    }
+    
+    // If no errors, proceed with database insertion
+    if (empty($errors)) {
+        // Create contact_messages table if it doesn't exist
+        $create_table = "CREATE TABLE IF NOT EXISTS `contact_messages` (
+            `id` int(11) NOT NULL AUTO_INCREMENT,
+            `name` varchar(100) NOT NULL,
+            `email` varchar(100) NOT NULL,
+            `subject` varchar(200) NOT NULL,
+            `message` text NOT NULL,
+            `status` tinyint(1) NOT NULL DEFAULT 0 COMMENT '0=unread, 1=read',
+            `date_created` datetime NOT NULL DEFAULT current_timestamp(),
+            PRIMARY KEY (`id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+        
+        $conn->query($create_table);
+        
+        // Insert into database
+        $sql = "INSERT INTO contact_messages (name, email, subject, message) VALUES ('$name', '$email', '$subject', '$message')";
+        
+        if ($conn->query($sql) === TRUE) {
+            echo "<script>alert('Thank you for your message! We will get back to you soon.');</script>";
+        } else {
+            echo "<script>alert('Error submitting your message. Please try again.');</script>";
+        }
     } else {
-        echo "<script>alert('Error submitting your message. Please try again.');</script>";
+        echo "<script>alert('" . implode("\\n", $errors) . "');</script>";
     }
 }
 ?>
 
-<style>
-/* Contact Page Styles */
-
-.contact-header {
-    background: linear-gradient(135deg, #6dc0ff 0%, #8c52ff 100%);
-    padding: 120px 0 100px;
-    position: relative;
-    overflow: hidden;
-    text-align: center;
-}
-
-.contact-header:before {
-    content: '';
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    top: 0;
-    left: 0;
-    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='white' fill-opacity='0.15' fill-rule='evenodd'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/svg%3E");
-    opacity: 0.7;
-}
-
-.contact-bubbles {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-}
-
-.bubble {
-    position: absolute;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.1);
-    animation: float 15s infinite ease-in-out;
-}
-
-.bubble:nth-child(1) {
-    width: 80px;
-    height: 80px;
-    left: 10%;
-    top: 40%;
-    animation-delay: 0s;
-}
-
-.bubble:nth-child(2) {
-    width: 40px;
-    height: 40px;
-    left: 20%;
-    top: 20%;
-    animation-delay: 2s;
-}
-
-.bubble:nth-child(3) {
-    width: 100px;
-    height: 100px;
-    right: 15%;
-    top: 30%;
-    animation-delay: 1s;
-}
-
-.bubble:nth-child(4) {
-    width: 60px;
-    height: 60px;
-    right: 10%;
-    top: 60%;
-    animation-delay: 3s;
-}
-
-.bubble:nth-child(5) {
-    width: 120px;
-    height: 120px;
-    bottom: -30px;
-    left: 30%;
-    animation-delay: 4s;
-}
-
-@keyframes float {
-    0% {
-        transform: translateY(0) rotate(0deg);
-    }
-    50% {
-        transform: translateY(-20px) rotate(180deg);
-    }
-    100% {
-        transform: translateY(0) rotate(360deg);
-    }
-}
-
-.contact-title {
-    color: white;
-    font-size: 3.5rem;
-    font-weight: 800;
-    margin-bottom: 15px;
-    position: relative;
-    z-index: 10;
-    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-}
-
-.contact-subtitle {
-    color: rgba(255, 255, 255, 0.9);
-    font-size: 1.2rem;
-    max-width: 600px;
-    margin: 0 auto;
-    position: relative;
-    z-index: 10;
-}
-
-.contact-container {
-    margin-top: -60px;
-    margin-bottom: 80px;
-    position: relative;
-    z-index: 20;
-    background-color: white;
-    padding: 100px;
-}
-
-.contact-card {
-    background: white;
-    border-radius: 15px;
-    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
-    height: 100%;
-}
-
-.contact-form-section {
-    padding: 40px;
-}
-
-.contact-info-section {
-    background: linear-gradient(135deg, #3a7bd5, #00d2ff);
-    padding: 40px;
-    color: white;
-    height: 100%;
-    position: relative;
-    overflow: hidden;
-}
-
-.contact-info-section:before {
-    content: '';
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    top: 0;
-    left: 0;
-    background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5z' fill='white' fill-opacity='0.1' fill-rule='evenodd'/%3E%3C/svg%3E");
-    opacity: 0.3;
-}
-
-.contact-info-section .info-content {
-    position: relative;
-    z-index: 5;
-}
-
-.section-title {
-    font-size: 2rem;
-    font-weight: 700;
-    margin-bottom: 30px;
-    position: relative;
-    display: inline-block;
-}
-
-.section-title:after {
-    content: '';
-    position: absolute;
-    width: 50px;
-    height: 3px;
-    bottom: -10px;
-    left: 0;
-    background: linear-gradient(45deg, #3a7bd5, #00d2ff);
-    border-radius: 3px;
-}
-
-.contact-info-section .section-title:after {
-    background: white;
-}
-
-.contact-info-item {
-    display: flex;
-    align-items: flex-start;
-    margin-bottom: 25px;
-}
-
-.contact-info-icon {
-    font-size: 1.5rem;
-    margin-right: 15px;
-    min-width: 30px;
-    display: flex;
-    justify-content: center;
-}
-
-.contact-info-text h5 {
-    font-size: 1.1rem;
-    margin-bottom: 5px;
-    font-weight: 600;
-}
-
-.contact-social {
-    margin-top: 40px;
-}
-
-.contact-social h5 {
-    margin-bottom: 15px;
-    font-size: 1.1rem;
-    font-weight: 600;
-}
-
-.social-icons {
-    display: flex;
-}
-
-.social-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.2);
-    color: white;
-    margin-right: 10px;
-    transition: all 0.3s ease;
-}
-
-.social-icon:hover {
-    background: white;
-    color: #3a7bd5;
-    transform: translateY(-5px);
-}
-
-.form-group {
-    margin-bottom: 25px;
-}
-
-.form-control {
-    height: 50px;
-    border-radius: 8px;
-    border: 1px solid #e1e1e1;
-    padding: 10px 15px;
-    font-size: 1rem;
-    transition: all 0.3s ease;
-}
-
-.form-control:focus {
-    border-color: #3a7bd5;
-    box-shadow: 0 0 0 3px rgba(58, 123, 213, 0.1);
-}
-
-textarea.form-control {
-    height: 120px;
-    resize: none;
-}
-
-.btn-contact {
-    background: linear-gradient(45deg, #3a7bd5, #00d2ff);
-    color: white;
-    border: none;
-    border-radius: 50px;
-    padding: 12px 30px;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-    box-shadow: 0 5px 15px rgba(58, 123, 213, 0.3);
-    transition: all 0.3s ease;
-}
-
-.btn-contact:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 25px rgba(58, 123, 213, 0.4);
-}
-.map-container {
-    height: 100%;
-    width: 100%;
-}
-
-/* Enhanced FAQ Section Styles */
-.faq-section {
-    padding: 70px 0 90px;
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-    position: relative;
-}
-
-.faq-section:before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3z' fill='%233a7bd5' fill-opacity='0.05' fill-rule='evenodd'/%3E%3C/svg%3E");
-    opacity: 0.5;
-    z-index: 0;
-}
-
-.faq-container {
-    max-width: 850px;
-    margin: 0 auto;
-    position: relative;
-    z-index: 1;
-}
-
-.faq-title {
-    text-align: center;
-    margin-bottom: 50px;
-}
-
-.faq-title h2 {
-    font-size: 2.5rem;
-    font-weight: 800;
-    margin-bottom: 15px;
-    background: linear-gradient(135deg, #3a7bd5, #00d2ff);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    display: inline-block;
-    position: relative;
-}
-
-.faq-title h2:after {
-    content: '';
-    position: absolute;
-    width: 70px;
-    height: 4px;
-    bottom: -10px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: linear-gradient(90deg, #3a7bd5, #00d2ff);
-    border-radius: 2px;
-}
-
-.faq-title p {
-    color: #6c757d;
-    font-size: 1.2rem;
-    max-width: 600px;
-    margin: 0 auto;
-}
-
-.custom-accordion .accordion-item {
-    margin-bottom: 16px;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
-    border: none;
-    transition: all 0.3s ease;
-}
-
-.custom-accordion .accordion-item:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
-}
-
-.custom-accordion .accordion-header {
-    background: white;
-}
-
-.custom-accordion .accordion-button {
-    padding: 22px 30px;
-    font-weight: 600;
-    font-size: 1.1rem;
-    color: #2c3e50;
-    background: white;
-    border: none;
-    box-shadow: none;
-    transition: all 0.3s ease;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-/* Hide the default Bootstrap accordion arrow */
-.custom-accordion .accordion-button::after {
-    display: none !important;
-}
-
-.custom-accordion .accordion-button:not(.collapsed) {
-    color: #3a7bd5;
-    background: white;
-    box-shadow: none;
-}
-
-.custom-accordion .accordion-button:focus {
-    box-shadow: none;
-    border-color: transparent;
-}
-
-.custom-accordion .accordion-body {
-    padding: 5px 30px 25px;
-    color: #6c757d;
-    font-size: 1.05rem;
-    line-height: 1.6;
-    background-color: white;
-}
-
-.faq-question {
-    display: flex;
-    align-items: center;
-    width: 100%;
-}
-
-.faq-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, rgba(58, 123, 213, 0.1), rgba(0, 210, 255, 0.1));
-    margin-right: 15px;
-    color: #3a7bd5;
-    transition: all 0.3s ease;
-}
-
-.accordion-button:not(.collapsed) .faq-icon {
-    background: linear-gradient(135deg, #3a7bd5, #00d2ff);
-    color: white;
-}
-
-/* Custom arrow styling */
-.custom-arrow {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    background: #f0f4f8;
-    margin-left: 15px;
-    color: #6c757d;
-    transition: all 0.3s ease;
-}
-
-.custom-arrow i {
-    font-size: 12px;
-    transition: transform 0.3s ease;
-}
-
-.accordion-button:not(.collapsed) .custom-arrow {
-    background: linear-gradient(135deg, #3a7bd5, #00d2ff);
-    color: white;
-}
-
-.accordion-button:not(.collapsed) .custom-arrow i {
-    transform: rotate(180deg);
-}
-
-/* Add a nice hover effect on the accordions */
-.custom-accordion .accordion-item:nth-child(1) .faq-icon {
-    color: #e74c3c;
-    background: linear-gradient(135deg, rgba(231, 76, 60, 0.1), rgba(255, 130, 114, 0.1));
-}
-
-.custom-accordion .accordion-item:nth-child(1) .accordion-button:not(.collapsed) .faq-icon {
-    background: linear-gradient(135deg, #e74c3c, #ff8272);
-    color: white;
-}
-
-.custom-accordion .accordion-item:nth-child(1) .accordion-button:not(.collapsed) .custom-arrow {
-    background: linear-gradient(135deg, #e74c3c, #ff8272);
-}
-
-.custom-accordion .accordion-item:nth-child(2) .faq-icon {
-    color: #2ecc71;
-    background: linear-gradient(135deg, rgba(46, 204, 113, 0.1), rgba(46, 204, 113, 0.1));
-}
-
-.custom-accordion .accordion-item:nth-child(2) .accordion-button:not(.collapsed) .faq-icon {
-    background: linear-gradient(135deg, #2ecc71, #27ae60);
-    color: white;
-}
-
-.custom-accordion .accordion-item:nth-child(2) .accordion-button:not(.collapsed) .custom-arrow {
-    background: linear-gradient(135deg, #2ecc71, #27ae60);
-}
-
-.custom-accordion .accordion-item:nth-child(3) .faq-icon {
-    color: #f39c12;
-    background: linear-gradient(135deg, rgba(243, 156, 18, 0.1), rgba(255, 193, 7, 0.1));
-}
-
-.custom-accordion .accordion-item:nth-child(3) .accordion-button:not(.collapsed) .faq-icon {
-    background: linear-gradient(135deg, #f39c12, #ffc107);
-    color: white;
-}
-
-.custom-accordion .accordion-item:nth-child(3) .accordion-button:not(.collapsed) .custom-arrow {
-    background: linear-gradient(135deg, #f39c12, #ffc107);
-}
-
-.custom-accordion .accordion-item:nth-child(4) .faq-icon {
-    color: #9b59b6;
-    background: linear-gradient(135deg, rgba(155, 89, 182, 0.1), rgba(155, 89, 182, 0.1));
-}
-
-.custom-accordion .accordion-item:nth-child(4) .accordion-button:not(.collapsed) .faq-icon {
-    background: linear-gradient(135deg, #9b59b6, #8e44ad);
-    color: white;
-}
-
-.custom-accordion .accordion-item:nth-child(4) .accordion-button:not(.collapsed) .custom-arrow {
-    background: linear-gradient(135deg, #9b59b6, #8e44ad);
-}
-
-.custom-accordion .accordion-item:nth-child(5) .faq-icon {
-    color: #3498db;
-    background: linear-gradient(135deg, rgba(52, 152, 219, 0.1), rgba(52, 152, 219, 0.1));
-}
-
-.custom-accordion .accordion-item:nth-child(5) .accordion-button:not(.collapsed) .faq-icon {
-    background: linear-gradient(135deg, #3498db, #2980b9);
-    color: white;
-}
-
-.custom-accordion .accordion-item:nth-child(5) .accordion-button:not(.collapsed) .custom-arrow {
-    background: linear-gradient(135deg, #3498db, #2980b9);
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-    .faq-section {
-        padding: 50px 0 70px;
-    }
-    
-    .faq-title h2 {
-        font-size: 2rem;
-    }
-    
-    .custom-accordion .accordion-button {
-        padding: 18px 20px;
-        font-size: 1rem;
-    }
-    
-    .custom-accordion .accordion-body {
-        padding: 5px 20px 20px;
-    }
-    
-    .faq-icon {
-        min-width: 32px;
-        height: 32px;
-        margin-right: 10px;
-    }
-}
-/* Add a nice hover effect on the accordions */
-.custom-accordion .accordion-item:nth-child(1) .faq-icon {
-    color: #e74c3c;
-    background: linear-gradient(135deg, rgba(231, 76, 60, 0.1), rgba(255, 130, 114, 0.1));
-}
-
-.custom-accordion .accordion-item:nth-child(1) .accordion-button:not(.collapsed) .faq-icon {
-    background: linear-gradient(135deg, #e74c3c, #ff8272);
-    color: white;
-}
-
-.custom-accordion .accordion-item:nth-child(2) .faq-icon {
-    color: #2ecc71;
-    background: linear-gradient(135deg, rgba(46, 204, 113, 0.1), rgba(46, 204, 113, 0.1));
-}
-
-.custom-accordion .accordion-item:nth-child(2) .accordion-button:not(.collapsed) .faq-icon {
-    background: linear-gradient(135deg, #2ecc71, #27ae60);
-    color: white;
-}
-
-.custom-accordion .accordion-item:nth-child(3) .faq-icon {
-    color: #f39c12;
-    background: linear-gradient(135deg, rgba(243, 156, 18, 0.1), rgba(255, 193, 7, 0.1));
-}
-
-.custom-accordion .accordion-item:nth-child(3) .accordion-button:not(.collapsed) .faq-icon {
-    background: linear-gradient(135deg, #f39c12, #ffc107);
-    color: white;
-}
-
-.custom-accordion .accordion-item:nth-child(4) .faq-icon {
-    color: #9b59b6;
-    background: linear-gradient(135deg, rgba(155, 89, 182, 0.1), rgba(155, 89, 182, 0.1));
-}
-
-.custom-accordion .accordion-item:nth-child(4) .accordion-button:not(.collapsed) .faq-icon {
-    background: linear-gradient(135deg, #9b59b6, #8e44ad);
-    color: white;
-}
-
-.custom-accordion .accordion-item:nth-child(5) .faq-icon {
-    color: #3498db;
-    background: linear-gradient(135deg, rgba(52, 152, 219, 0.1), rgba(52, 152, 219, 0.1));
-}
-
-.custom-accordion .accordion-item:nth-child(5) .accordion-button:not(.collapsed) .faq-icon {
-    background: linear-gradient(135deg, #3498db, #2980b9);
-    color: white;
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-    .faq-section {
-        padding: 50px 0 70px;
-    }
-    
-    .faq-title h2 {
-        font-size: 2rem;
-    }
-    
-    .custom-accordion .accordion-button {
-        padding: 18px 20px;
-        font-size: 1rem;
-    }
-    
-    .custom-accordion .accordion-body {
-        padding: 5px 20px 20px;
-    }
-    
-    .faq-icon {
-        min-width: 32px;
-        height: 32px;
-        margin-right: 10px;
-    }
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-    .contact-header {
-        padding: 100px 0 80px;
-    }
-    
-    .contact-title {
-        font-size: 2.5rem;
-    }
-    
-    .contact-container {
-        margin-top: -40px;
-    }
-    
-    .contact-form-section,
-    .contact-info-section {
-        padding: 30px;
-    }
-    
-    .map-section {
-        height: 300px;
-        margin-bottom: 60px;
-    }
-    
-    .faq-section {
-        padding: 40px 0 60px;
-    }
-    
-    .faq-title h2 {
-        font-size: 2rem;
-    }
-}
-</style>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Contact Page Styles */
+        .contact-header {
+            background: linear-gradient(135deg, #6dc0ff 0%, #8c52ff 100%);
+            padding: 120px 0 100px;
+            position: relative;
+            overflow: hidden;
+            text-align: center;
+        }
+
+        .contact-header:before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='white' fill-opacity='0.15' fill-rule='evenodd'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/svg%3E");
+            opacity: 0.7;
+        }
+
+        .contact-bubbles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .bubble {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            animation: float 15s infinite ease-in-out;
+        }
+
+        .bubble:nth-child(1) {
+            width: 80px;
+            height: 80px;
+            left: 10%;
+            top: 40%;
+            animation-delay: 0s;
+        }
+
+        .bubble:nth-child(2) {
+            width: 40px;
+            height: 40px;
+            left: 20%;
+            top: 20%;
+            animation-delay: 2s;
+        }
+
+        .bubble:nth-child(3) {
+            width: 100px;
+            height: 100px;
+            right: 15%;
+            top: 30%;
+            animation-delay: 1s;
+        }
+
+        .bubble:nth-child(4) {
+            width: 60px;
+            height: 60px;
+            right: 10%;
+            top: 60%;
+            animation-delay: 3s;
+        }
+
+        .bubble:nth-child(5) {
+            width: 120px;
+            height: 120px;
+            bottom: -30px;
+            left: 30%;
+            animation-delay: 4s;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(0) rotate(0deg);
+            }
+            50% {
+                transform: translateY(-20px) rotate(180deg);
+            }
+            100% {
+                transform: translateY(0) rotate(360deg);
+            }
+        }
+
+        .contact-title {
+            color: white;
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 15px;
+            position: relative;
+            z-index: 10;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .contact-subtitle {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.2rem;
+            max-width: 600px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 10;
+        }
+
+        .contact-container {
+            margin-top: -60px;
+            margin-bottom: 80px;
+            position: relative;
+            z-index: 20;
+            background-color: white;
+            padding: 100px;
+        }
+
+        .contact-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            height: 100%;
+        }
+
+        .contact-form-section {
+            padding: 40px;
+        }
+
+        .contact-info-section {
+            background: linear-gradient(135deg, #3a7bd5, #00d2ff);
+            padding: 40px;
+            color: white;
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .contact-info-section:before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5z' fill='white' fill-opacity='0.1' fill-rule='evenodd'/%3E%3C/svg%3E");
+            opacity: 0.3;
+        }
+
+        .contact-info-section .info-content {
+            position: relative;
+            z-index: 5;
+        }
+
+        .section-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 30px;
+            position: relative;
+            display: inline-block;
+        }
+
+        .section-title:after {
+            content: '';
+            position: absolute;
+            width: 50px;
+            height: 3px;
+            bottom: -10px;
+            left: 0;
+            background: linear-gradient(45deg, #3a7bd5, #00d2ff);
+            border-radius: 3px;
+        }
+
+        .contact-info-section .section-title:after {
+            background: white;
+        }
+
+        .contact-info-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 25px;
+        }
+
+        .contact-info-icon {
+            font-size: 1.5rem;
+            margin-right: 15px;
+            min-width: 30px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .contact-info-text h5 {
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .contact-social {
+            margin-top: 40px;
+        }
+
+        .contact-social h5 {
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .social-icons {
+            display: flex;
+        }
+
+        .social-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            margin-right: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .social-icon:hover {
+            background: white;
+            color: #3a7bd5;
+            transform: translateY(-5px);
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-control {
+            height: 50px;
+            border-radius: 8px;
+            border: 1px solid #e1e1e1;
+            padding: 10px 15px;
+            font-size: 0.95rem;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            transition: all 0.3s ease;
+            font-weight: 400;
+        }
+
+        .form-control:focus {
+            border-color: #3a7bd5;
+            box-shadow: 0 0 0 3px rgba(58, 123, 213, 0.1);
+        }
+
+        textarea.form-control {
+            height: 120px;
+            resize: none;
+            line-height: 1.5;
+        }
+
+        .btn-contact {
+            background: linear-gradient(45deg, #3a7bd5, #00d2ff);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 12px 30px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            box-shadow: 0 5px 15px rgba(58, 123, 213, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .btn-contact:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(58, 123, 213, 0.4);
+        }
+
+        .map-container {
+            height: 100%;
+            width: 100%;
+        }
+
+        /* Enhanced FAQ Section Styles */
+        .faq-section {
+            padding: 70px 0 90px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            position: relative;
+        }
+
+        .faq-section:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3z' fill='%233a7bd5' fill-opacity='0.05' fill-rule='evenodd'/%3E%3C/svg%3E");
+            opacity: 0.5;
+            z-index: 0;
+        }
+
+        .faq-container {
+            max-width: 850px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .faq-title {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .faq-title h2 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #3a7bd5, #00d2ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: inline-block;
+            position: relative;
+        }
+
+        .faq-title h2:after {
+            content: '';
+            position: absolute;
+            width: 70px;
+            height: 4px;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(90deg, #3a7bd5, #00d2ff);
+            border-radius: 2px;
+        }
+
+        .faq-title p {
+            color: #6c757d;
+            font-size: 1.2rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .custom-accordion .accordion-item {
+            margin-bottom: 16px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        .custom-accordion .accordion-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+        }
+
+        .custom-accordion .accordion-header {
+            background: white;
+        }
+
+        .custom-accordion .accordion-button {
+            padding: 22px 30px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: #2c3e50;
+            background: white;
+            border: none;
+            box-shadow: none;
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Hide the default Bootstrap accordion arrow */
+        .custom-accordion .accordion-button::after {
+            display: none !important;
+        }
+
+        .custom-accordion .accordion-button:not(.collapsed) {
+            color: #3a7bd5;
+            background: white;
+            box-shadow: none;
+        }
+
+        .custom-accordion .accordion-button:focus {
+            box-shadow: none;
+            border-color: transparent;
+        }
+
+        .custom-accordion .accordion-body {
+            padding: 5px 30px 25px;
+            color: #6c757d;
+            font-size: 1.05rem;
+            line-height: 1.6;
+            background-color: white;
+        }
+
+        .faq-question {
+            display: flex;
+            align-items: center;
+            width: 100%;
+        }
+
+        .faq-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(58, 123, 213, 0.1), rgba(0, 210, 255, 0.1));
+            margin-right: 15px;
+            color: #3a7bd5;
+            transition: all 0.3s ease;
+        }
+
+        .accordion-button:not(.collapsed) .faq-icon {
+            background: linear-gradient(135deg, #3a7bd5, #00d2ff);
+            color: white;
+        }
+
+        /* Custom arrow styling */
+        .custom-arrow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #f0f4f8;
+            margin-left: 15px;
+            color: #6c757d;
+            transition: all 0.3s ease;
+        }
+
+        .custom-arrow i {
+            font-size: 12px;
+            transition: transform 0.3s ease;
+        }
+
+        .accordion-button:not(.collapsed) .custom-arrow {
+            background: linear-gradient(135deg, #3a7bd5, #00d2ff);
+            color: white;
+        }
+
+        .accordion-button:not(.collapsed) .custom-arrow i {
+            transform: rotate(180deg);
+        }
+
+        /* Add a nice hover effect on the accordions */
+        .custom-accordion .accordion-item:nth-child(1) .faq-icon {
+            color: #e74c3c;
+            background: linear-gradient(135deg, rgba(231, 76, 60, 0.1), rgba(255, 130, 114, 0.1));
+        }
+
+        .custom-accordion .accordion-item:nth-child(1) .accordion-button:not(.collapsed) .faq-icon {
+            background: linear-gradient(135deg, #e74c3c, #ff8272);
+            color: white;
+        }
+
+        .custom-accordion .accordion-item:nth-child(1) .accordion-button:not(.collapsed) .custom-arrow {
+            background: linear-gradient(135deg, #e74c3c, #ff8272);
+        }
+
+        .custom-accordion .accordion-item:nth-child(2) .faq-icon {
+            color: #2ecc71;
+            background: linear-gradient(135deg, rgba(46, 204, 113, 0.1), rgba(46, 204, 113, 0.1));
+        }
+
+        .custom-accordion .accordion-item:nth-child(2) .accordion-button:not(.collapsed) .faq-icon {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            color: white;
+        }
+
+        .custom-accordion .accordion-item:nth-child(2) .accordion-button:not(.collapsed) .custom-arrow {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+        }
+
+        .custom-accordion .accordion-item:nth-child(3) .faq-icon {
+            color: #f39c12;
+            background: linear-gradient(135deg, rgba(243, 156, 18, 0.1), rgba(255, 193, 7, 0.1));
+        }
+
+        .custom-accordion .accordion-item:nth-child(3) .accordion-button:not(.collapsed) .faq-icon {
+            background: linear-gradient(135deg, #f39c12, #ffc107);
+            color: white;
+        }
+
+        .custom-accordion .accordion-item:nth-child(3) .accordion-button:not(.collapsed) .custom-arrow {
+            background: linear-gradient(135deg, #f39c12, #ffc107);
+        }
+
+        .custom-accordion .accordion-item:nth-child(4) .faq-icon {
+            color: #9b59b6;
+            background: linear-gradient(135deg, rgba(155, 89, 182, 0.1), rgba(155, 89, 182, 0.1));
+        }
+
+        .custom-accordion .accordion-item:nth-child(4) .accordion-button:not(.collapsed) .faq-icon {
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+            color: white;
+        }
+
+        .custom-accordion .accordion-item:nth-child(4) .accordion-button:not(.collapsed) .custom-arrow {
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+        }
+
+        .custom-accordion .accordion-item:nth-child(5) .faq-icon {
+            color: #3498db;
+            background: linear-gradient(135deg, rgba(52, 152, 219, 0.1), rgba(52, 152, 219, 0.1));
+        }
+
+        .custom-accordion .accordion-item:nth-child(5) .accordion-button:not(.collapsed) .faq-icon {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+        }
+
+        .custom-accordion .accordion-item:nth-child(5) .accordion-button:not(.collapsed) .custom-arrow {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .faq-section {
+                padding: 50px 0 70px;
+            }
+            
+            .faq-title h2 {
+                font-size: 2rem;
+            }
+            
+            .custom-accordion .accordion-button {
+                padding: 18px 20px;
+                font-size: 1rem;
+            }
+            
+            .custom-accordion .accordion-body {
+                padding: 5px 20px 20px;
+            }
+            
+            .faq-icon {
+                min-width: 32px;
+                height: 32px;
+                margin-right: 10px;
+            }
+        }
+
+        /* Add a nice hover effect on the accordions */
+        .custom-accordion .accordion-item:nth-child(1) .faq-icon {
+            color: #e74c3c;
+            background: linear-gradient(135deg, rgba(231, 76, 60, 0.1), rgba(255, 130, 114, 0.1));
+        }
+
+        .custom-accordion .accordion-item:nth-child(1) .accordion-button:not(.collapsed) .faq-icon {
+            background: linear-gradient(135deg, #e74c3c, #ff8272);
+            color: white;
+        }
+
+        .custom-accordion .accordion-item:nth-child(2) .faq-icon {
+            color: #2ecc71;
+            background: linear-gradient(135deg, rgba(46, 204, 113, 0.1), rgba(46, 204, 113, 0.1));
+        }
+
+        .custom-accordion .accordion-item:nth-child(2) .accordion-button:not(.collapsed) .faq-icon {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            color: white;
+        }
+
+        .custom-accordion .accordion-item:nth-child(3) .faq-icon {
+            color: #f39c12;
+            background: linear-gradient(135deg, rgba(243, 156, 18, 0.1), rgba(255, 193, 7, 0.1));
+        }
+
+        .custom-accordion .accordion-item:nth-child(3) .accordion-button:not(.collapsed) .faq-icon {
+            background: linear-gradient(135deg, #f39c12, #ffc107);
+            color: white;
+        }
+
+        .custom-accordion .accordion-item:nth-child(4) .faq-icon {
+            color: #9b59b6;
+            background: linear-gradient(135deg, rgba(155, 89, 182, 0.1), rgba(155, 89, 182, 0.1));
+        }
+
+        .custom-accordion .accordion-item:nth-child(4) .accordion-button:not(.collapsed) .faq-icon {
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+            color: white;
+        }
+
+        .custom-accordion .accordion-item:nth-child(5) .faq-icon {
+            color: #3498db;
+            background: linear-gradient(135deg, rgba(52, 152, 219, 0.1), rgba(52, 152, 219, 0.1));
+        }
+
+        .custom-accordion .accordion-item:nth-child(5) .accordion-button:not(.collapsed) .faq-icon {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .faq-section {
+                padding: 50px 0 70px;
+            }
+            
+            .faq-title h2 {
+                font-size: 2rem;
+            }
+            
+            .custom-accordion .accordion-button {
+                padding: 18px 20px;
+                font-size: 1rem;
+            }
+            
+            .custom-accordion .accordion-body {
+                padding: 5px 20px 20px;
+            }
+            
+            .faq-icon {
+                min-width: 32px;
+                height: 32px;
+                margin-right: 10px;
+            }
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .contact-header {
+                padding: 100px 0 80px;
+            }
+            
+            .contact-title {
+                font-size: 2.5rem;
+            }
+            
+            .contact-container {
+                margin-top: -40px;
+            }
+            
+            .contact-form-section,
+            .contact-info-section {
+                padding: 30px;
+            }
+            
+            .map-section {
+                height: 300px;
+                margin-bottom: 60px;
+            }
+            
+            .faq-section {
+                padding: 40px 0 60px;
+            }
+            
+            .faq-title h2 {
+                font-size: 2rem;
+            }
+        }
+
+        /* Update the error message styling */
+        .error-message {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            font-size: 0.8rem;
+            margin-top: 6px;
+            transition: all 0.3s ease;
+            color: #e74c3c !important;
+            font-weight: 400;
+            display: none;
+            padding-left: 2px;
+            letter-spacing: 0.2px;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+<body>
 
 <!-- Contact Header -->
 <header class="contact-header">
@@ -714,19 +769,23 @@ textarea.form-control {
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <input type="text" class="form-control" id="name" name="name" placeholder="Your Name" required>
+                                                <small class="error-message" id="nameError"></small>
                                             </div>
                                         </div>
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <input type="email" class="form-control" id="email" name="email" placeholder="Your Email" required>
+                                                <small class="error-message" id="emailError"></small>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="form-group">
                                         <input type="text" class="form-control" id="subject" name="subject" placeholder="Subject" required>
+                                        <small class="error-message" id="subjectError"></small>
                                     </div>
                                     <div class="form-group">
                                         <textarea class="form-control" id="message" name="message" placeholder="Your Message" required></textarea>
+                                        <small class="error-message" id="messageError"></small>
                                     </div>
                                     <div class="form-group mb-0">
                                         <button type="submit" class="btn btn-contact">Send Message</button>
@@ -792,6 +851,7 @@ textarea.form-control {
         </div>
     </div>
 </section>
+
 <!-- FAQ Section -->
 <section class="faq-section">
     <div class="container faq-container">
@@ -915,4 +975,124 @@ textarea.form-control {
     var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
         return new bootstrap.Tooltip(tooltipTriggerEl);
     });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('contactForm');
+        const nameInput = document.getElementById('name');
+        const emailInput = document.getElementById('email');
+        const subjectInput = document.getElementById('subject');
+        const messageInput = document.getElementById('message');
+
+        // Error message elements
+        const nameError = document.getElementById('nameError');
+        const emailError = document.getElementById('emailError');
+        const subjectError = document.getElementById('subjectError');
+        const messageError = document.getElementById('messageError');
+
+        // Name validation - only check for special characters, spaces are allowed
+        nameInput.addEventListener('input', function() {
+            const hasSpecialChars = /[^a-zA-Z\s]/.test(this.value);
+            
+            if (hasSpecialChars) {
+                this.style.borderColor = '#e74c3c'; // Red border
+                nameError.textContent = 'Please remove special characters and numbers';
+                nameError.style.display = 'block';
+            } else if (this.value.trim() === '') {
+                this.style.borderColor = '#e74c3c'; // Red border
+                nameError.textContent = 'Name is required';
+                nameError.style.display = 'block';
+            } else {
+                this.style.borderColor = '#2ecc71'; // Green border
+                nameError.style.display = 'none';
+            }
+        });
+
+        // Email validation - check format only
+        emailInput.addEventListener('input', function() {
+            const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.value);
+            
+            if (this.value.trim() === '') {
+                this.style.borderColor = '#e74c3c';
+                emailError.textContent = 'Email is required';
+                emailError.style.display = 'block';
+            } else if (!isValidEmail) {
+                this.style.borderColor = '#e74c3c';
+                emailError.textContent = 'Please enter a valid email address';
+                emailError.style.display = 'block';
+            } else {
+                this.style.borderColor = '#2ecc71';
+                emailError.style.display = 'none';
+            }
+        });
+
+        // Subject validation - only length check (2-100 characters)
+        subjectInput.addEventListener('input', function() {
+            const length = this.value.length;
+            
+            if (this.value.trim() === '') {
+                this.style.borderColor = '#e74c3c';
+                subjectError.textContent = 'Subject is required';
+                subjectError.style.display = 'block';
+            } else if (length < 2) {
+                this.style.borderColor = '#e74c3c';
+                subjectError.textContent = 'Subject must be at least 2 characters';
+                subjectError.style.display = 'block';
+            } else if (length > 100) {
+                this.style.borderColor = '#e74c3c';
+                subjectError.textContent = 'Subject must not exceed 100 characters';
+                subjectError.style.display = 'block';
+            } else {
+                this.style.borderColor = '#2ecc71';
+                subjectError.style.display = 'none';
+            }
+        });
+
+        // Message validation - only length check (10-1000 characters)
+        messageInput.addEventListener('input', function() {
+            const length = this.value.length;
+            
+            if (this.value.trim() === '') {
+                this.style.borderColor = '#e74c3c';
+                messageError.textContent = 'Message is required';
+                messageError.style.display = 'block';
+            } else if (length < 10) {
+                this.style.borderColor = '#e74c3c';
+                messageError.textContent = 'Message must be at least 10 characters';
+                messageError.style.display = 'block';
+            } else if (length > 1000) {
+                this.style.borderColor = '#e74c3c';
+                messageError.textContent = 'Message must not exceed 1000 characters';
+                messageError.style.display = 'block';
+            } else {
+                this.style.borderColor = '#2ecc71';
+                messageError.style.display = 'none';
+            }
+        });
+
+        // Form submission validation
+        form.addEventListener('submit', function(e) {
+            // Trigger validation for all fields
+            nameInput.dispatchEvent(new Event('input'));
+            emailInput.dispatchEvent(new Event('input'));
+            subjectInput.dispatchEvent(new Event('input'));
+            messageInput.dispatchEvent(new Event('input'));
+
+            // Check if any error messages are displayed
+            if (nameError.style.display === 'block' ||
+                emailError.style.display === 'block' ||
+                subjectError.style.display === 'block' ||
+                messageError.style.display === 'block') {
+                e.preventDefault();
+                
+                // Scroll to the first error
+                const firstError = document.querySelector('.error-message[style="display: block;"]');
+                if (firstError) {
+                    firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
+        });
+    });
 </script>
+
+</body>
+</html>

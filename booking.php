@@ -1,122 +1,120 @@
 <div class="container-fluid px-0">
-	<div class="booking-form-wrapper glass-morphism p-4">
-		<div class="mb-4 text-center">
-			<h3 class="text-primary mb-2">Book Your Venue</h3>
-			<p class="text-muted">Complete the form below to request your booking</p>
-			<div class="booking-progress">
-				<div class="progress-line active"></div>
-				<div class="progress-line"></div>
-				<div class="progress-line"></div>
-			</div>
-		</div>
-		
-		<form action="" id="manage-book" class="modern-form">
-			<input type="hidden" name="id" value="<?php echo isset($id) ? $id :'' ?>">
-			<input type="hidden" name="venue_id" value="<?php echo isset($_GET['venue_id']) ? $_GET['venue_id'] :'' ?>">
-			
-			<div class="row">
-				<div class="col-md-12">
-					<div class="form-group floating-label mb-4">
-						<input type="text" class="form-control custom-input" name="name" id="name" value="<?php echo isset($name) ? $name :'' ?>" required>
-						<label for="name" class="control-label">Full Name</label>
-						<div class="focus-border"></div>
-					</div>
-				</div>
-				
-				<div class="col-md-12">
-					<div class="form-group floating-label mb-4">
-						<textarea cols="30" rows="2" class="form-control custom-input" name="address" id="address" required><?php echo isset($address) ? $address :'' ?></textarea>
-						<label for="address" class="control-label">Address</label>
-						<div class="focus-border"></div>
-					</div>
-				</div>
-				
-				<div class="col-md-6">
-					<div class="form-group floating-label mb-4">
-						<input type="email" class="form-control custom-input" name="email" id="email" value="<?php echo isset($email) ? $email :'' ?>" required>
-						<label for="email" class="control-label">Email</label>
-						<div class="focus-border"></div>
-					</div>
-				</div>
-				
-				<div class="col-md-6">
-					<div class="form-group floating-label mb-4">
-						<input type="text" class="form-control custom-input" name="contact" id="contact" value="<?php echo isset($contact) ? $contact :'' ?>" required>
-						<label for="contact" class="control-label">Contact #</label>
-						<div class="focus-border"></div>
-					</div>
-				</div>
-				
-				<div class="col-md-6">
-					<div class="form-group mb-4">
-						<label for="duration" class="control-label mb-2">Event Duration</label>
-						<div class="custom-select-wrapper">
-							<select class="form-control custom-select" name="duration" id="duration" required>
-								<option value="">Select Duration</option>
-								<option value="Half Day (4 hours)" <?php echo isset($duration) && $duration == 'Half Day (4 hours)' ? 'selected' : '' ?>>Half Day (4 hours)</option>
-								<option value="Full Day (8 hours)" <?php echo isset($duration) && $duration == 'Full Day (8 hours)' ? 'selected' : '' ?>>Full Day (8 hours)</option>
-								<option value="Evening (6pm-12am)" <?php echo isset($duration) && $duration == 'Evening (6pm-12am)' ? 'selected' : '' ?>>Evening (6pm-12am)</option>
-								<option value="Weekend (Sat-Sun)" <?php echo isset($duration) && $duration == 'Weekend (Sat-Sun)' ? 'selected' : '' ?>>Weekend (Sat-Sun)</option>
-								<option value="Custom" <?php echo isset($duration) && !in_array($duration, ['Half Day (4 hours)', 'Full Day (8 hours)', 'Evening (6pm-12am)', 'Weekend (Sat-Sun)']) ? 'selected' : '' ?>>Custom</option>
-							</select>
-							<i class="fas fa-chevron-down select-arrow"></i>
-						</div>
-					</div>
-				</div>
-				
-				<div class="col-md-6">
-					<div class="form-group mb-4">
-						<label for="schedule" class="control-label mb-2">Desired Event Schedule</label>
-						<div class="date-input-wrapper">
-							<input type="text" class="form-control datetimepicker" name="schedule" id="schedule" value="<?php echo isset($schedule) ? $schedule :'' ?>" required>
-							<i class="far fa-calendar-alt date-icon"></i>
-						</div>
-					</div>
-				</div>
-				
-				<div class="col-md-12" id="custom-duration-container" style="display:none;">
-					<div class="form-group floating-label mb-4">
-						<input type="text" class="form-control custom-input" name="custom_duration" id="custom_duration">
-						<label for="custom_duration" class="control-label">Specify Custom Duration</label>
-						<div class="focus-border"></div>
-					</div>
-				</div>
-				
-				<div class="col-12 mt-3">
-					<h5 class="mb-3">Additional Requirements</h5>
-					<div class="row">
-						<div class="col-md-6">
-							<div class="custom-checkbox mb-3">
-								<input type="checkbox" id="catering" name="requirements[]" value="catering">
-								<label for="catering">Catering Services</label>
-							</div>
-							<div class="custom-checkbox mb-3">
-								<input type="checkbox" id="equipment" name="requirements[]" value="equipment">
-								<label for="equipment">Audio/Visual Equipment</label>
-							</div>
-						</div>
-						<div class="col-md-6">
-							<div class="custom-checkbox mb-3">
-								<input type="checkbox" id="decoration" name="requirements[]" value="decoration">
-								<label for="decoration">Decoration Services</label>
-							</div>
-							<div class="custom-checkbox mb-3">
-								<input type="checkbox" id="parking" name="requirements[]" value="parking">
-								<label for="parking">Reserved Parking</label>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-		</form>
-		
-		<div class="booking-footer mt-4">
-			<button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-			<button type="button" class="btn btn-primary gradient-bg pulse submit-btn">Submit Booking <i class="fas fa-paper-plane ml-2"></i></button>
-		</div>
-	</div>
+    <div class="booking-form-wrapper glass-morphism p-4">
+        <div class="mb-4 text-center">
+            <h3 class="text-primary mb-2">Book Your Venue</h3>
+            <p class="text-muted">Complete the form below to request your booking</p>
+            <div class="booking-progress">
+                <div class="progress-line active"></div>
+                <div class="progress-line"></div>
+                <div class="progress-line"></div>
+            </div>
+        </div>
+        
+        <form action="" id="manage-book" class="modern-form" novalidate>
+            <input type="hidden" name="id" value="<?php echo isset($id) ? htmlspecialchars($id) :'' ?>">
+            <input type="hidden" name="venue_id" value="<?php echo isset($_GET['venue_id']) ? htmlspecialchars($_GET['venue_id']) :'' ?>">
+            
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="form-group floating-label mb-4">
+                        <input type="text" class="form-control custom-input" name="name" id="name" value="<?php echo isset($name) ? htmlspecialchars($name) :'' ?>" required>
+                        <label for="name" class="control-label">Full Name</label>
+                        <div class="focus-border"></div>
+                    </div>
+                </div>
+                
+                <div class="col-md-12">
+                    <div class="form-group floating-label mb-4">
+                        <textarea cols="30" rows="2" class="form-control custom-input" name="address" id="address" required><?php echo isset($address) ? htmlspecialchars($address) :'' ?></textarea>
+                        <label for="address" class="control-label">Address</label>
+                        <div class="focus-border"></div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="form-group floating-label mb-4">
+                        <input type="email" class="form-control custom-input" name="email" id="email" value="<?php echo isset($email) ? htmlspecialchars($email) :'' ?>" required>
+                        <label for="email" class="control-label">Email</label>
+                        <div class="focus-border"></div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="form-group floating-label mb-4">
+                        <input type="text" class="form-control custom-input" name="contact" id="contact" value="<?php echo isset($contact) ? htmlspecialchars($contact) :'' ?>" required pattern="^[0-9]{10,15}$" title="Enter a valid contact number (10-15 digits)">
+                        <label for="contact" class="control-label">Contact #</label>
+                        <div class="focus-border"></div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="form-group mb-4">
+                        <label for="duration" class="control-label mb-2">Event Duration</label>
+                        <div class="custom-select-wrapper">
+                            <select class="form-control custom-select" name="duration" id="duration" required>
+                                <option value="">Select Duration</option>
+                                <option value="Half Day (4 hours)" <?php echo isset($duration) && $duration == 'Half Day (4 hours)' ? 'selected' : '' ?>>Half Day (4 hours)</option>
+                                <option value="Full Day (8 hours)" <?php echo isset($duration) && $duration == 'Full Day (8 hours)' ? 'selected' : '' ?>>Full Day (8 hours)</option>
+                                <option value="Evening (6pm-12am)" <?php echo isset($duration) && $duration == 'Evening (6pm-12am)' ? 'selected' : '' ?>>Evening (6pm-12am)</option>
+                                <option value="Weekend (Sat-Sun)" <?php echo isset($duration) && $duration == 'Weekend (Sat-Sun)' ? 'selected' : '' ?>>Weekend (Sat-Sun)</option>
+                                <option value="Custom" <?php echo isset($duration) && !in_array($duration, ['Half Day (4 hours)', 'Full Day (8 hours)', 'Evening (6pm-12am)', 'Weekend (Sat-Sun)']) ? 'selected' : '' ?>>Custom</option>
+                            </select>
+                            <i class="fas fa-chevron-down select-arrow"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="form-group mb-4">
+                        <label for="schedule" class="control-label mb-2">Desired Event Schedule</label>
+                        <div class="date-input-wrapper">
+                            <input type="text" class="form-control datetimepicker" name="schedule" id="schedule" value="<?php echo isset($schedule) ? htmlspecialchars($schedule) :'' ?>" required>
+                            <i class="far fa-calendar-alt date-icon"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-12" id="custom-duration-container" style="display:none;">
+                    <div class="form-group floating-label mb-4">
+                        <input type="text" class="form-control custom-input" name="custom_duration" id="custom_duration">
+                        <label for="custom_duration" class="control-label">Specify Custom Duration</label>
+                        <div class="focus-border"></div>
+                    </div>
+                </div>
+                
+                <div class="col-12 mt-3">
+                    <h5 class="mb-3">Additional Requirements</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="custom-checkbox mb-3">
+                                <input type="checkbox" id="catering" name="requirements[]" value="catering">
+                                <label for="catering">Catering Services</label>
+                            </div>
+                            <div class="custom-checkbox mb-3">
+                                <input type="checkbox" id="equipment" name="requirements[]" value="equipment">
+                                <label for="equipment">Audio/Visual Equipment</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="custom-checkbox mb-3">
+                                <input type="checkbox" id="decoration" name="requirements[]" value="decoration">
+                                <label for="decoration">Decoration Services</label>
+                            </div>
+                            <div class="custom-checkbox mb-3">
+                                <input type="checkbox" id="parking" name="requirements[]" value="parking">
+                                <label for="parking">Reserved Parking</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+        
+        <div class="booking-footer mt-4">
+            <button type="button" class="btn btn-primary gradient-bg submit-btn">Submit Booking <i class="fas fa-paper-plane ml-2"></i></button>
+        </div>
+    </div>
 </div>
-
 <style>
 	.booking-form-wrapper {
 		border-radius: 15px;
@@ -288,11 +286,12 @@
 	}
 	
 	.submit-btn {
-		transition: var(--transition-bounce);
+		transition: all 0.3s ease;
+		width: 100%;
 	}
 	
 	.submit-btn:hover {
-		transform: translateY(-5px);
+		background-color: #0056b3;
 	}
 	
 	@media (max-width: 767px) {
@@ -394,10 +393,5 @@
 				}
 			});
 		});
-		
-		// Add floating effect
-		setTimeout(function(){
-			$('.booking-form-wrapper').addClass('floating');
-		}, 500);
 	});
 </script>

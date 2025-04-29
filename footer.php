@@ -134,7 +134,7 @@
 		format:"yyyy-mm-dd"
 	})
 	 window.start_load = function(){
-    $('body').prepend('<di id="preloader2"></di>')
+    $('body').prepend('<div id="preloader2"></div>')
   }
   window.end_load = function(){
     $('#preloader2').fadeOut('fast', function() {
@@ -159,6 +159,14 @@
                 }else{
                     $('#uni_modal .modal-dialog').removeAttr("class").addClass("modal-dialog modal-md")
                 }
+                
+                // Hide modal footer buttons for booking form
+                if($url.includes('booking.php') || $url.includes('book_msg.php')) {
+                    $('#uni_modal .modal-footer').hide();
+                } else {
+                    $('#uni_modal .modal-footer').show();
+                }
+                
                 $('#uni_modal').modal({
                   show:true,
                   backdrop:'static',

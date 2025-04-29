@@ -89,7 +89,7 @@
 	}
 	img{
 		max-width:100px;
-		max-height: :150px;
+		max-height: 150px;
 	}
 </style>
 <script>
@@ -105,7 +105,7 @@
 	})
 	
 	function delete_venue($id){
-		stvenue_load()
+		start_load()
 		$.ajax({
 			url:'ajax.php?action=delete_venue',
 			method:'POST',
@@ -116,8 +116,15 @@
 					setTimeout(function(){
 						location.reload()
 					},1500)
-
+				} else {
+					alert_toast("An error occurred",'danger')
+					end_load()
 				}
+			},
+			error: function(err){
+				console.log(err)
+				alert_toast("An error occurred",'danger')
+				end_load()
 			}
 		})
 	}
